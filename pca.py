@@ -35,8 +35,6 @@ def power_iteration(X):
     # covariance matrix of X transpose
     cov_matrix = np.cov(X_cen.T)
 
-    print(cov_matrix.shape)
-
     # starting vector and value
     vector = np.random.rand(cov_matrix.shape[1])
     val = vector.dot(cov_matrix.dot(vector))
@@ -79,16 +77,22 @@ def power_iteration_two_components(X):
     # first eigenvector and eigenvalue
     vector1, value1 = power_iteration(X)
 
-    print(X)
-
     count = 0
     for i in X:
+        # projection of each data point to eigenvector
         projection = vector1 * np.dot(i, vector1) / np.dot(vector1, vector1)
+        # substract the projection from original data
         X[count, :] = X[count, :] - projection
         count += 1
 
+    # calcutlating second eigen value and vector with power method
     vector2, value2 = power_iteration(X)
-    print(value2)
+
+    # combining both into matix
+    eigen_vectors = np.stack((vector1, vector2))
+    eigen_values = np.concatenate((value1, value2), axis=None)
+
+    return eigen_vectors, eigen_values
 
 
 def project_to_eigenvectors(X, vecs):
