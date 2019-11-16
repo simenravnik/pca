@@ -1,22 +1,109 @@
+import os
 
+from unidecode import unidecode
 import numpy as np
 
 # useful:
 # https://towardsdatascience.com/pca-eigenvectors-and-eigenvalues-1f968bc6777a
-# https://stackoverflow.com/questions/22631956/how-to-find-eigenvalues-for-non-quadratic-matrix/22633991
 
 
-def prepare_data_matrix():
+def prepare_data_matrix(files, n=3):
     """
     Return data in a matrix (2D numpy array), where each row contains triplets
     for a language. Columns should be the 100 most common triplets
     according to the idf measure.
     """
     # create matrix X and list of languages
-    # ...
 
-    #return X, languages
-    pass
+    # texts is a dict of dicts, so that keys are languages, and values is a dict
+    # of unique n-consecutive strings in language and their number of repetitions
+    texts = {}
+
+    # all_triplets is a dict so that keys are triplets and values are in how many languages the triple appears
+    all_triplets = {}
+
+    for i in files:
+
+        f = open(i, "rt", encoding="utf8").read(). \
+            replace("\n", " "). \
+            replace(".", " "). \
+            replace(",", " "). \
+            replace(";", " "). \
+            replace("(", " "). \
+            replace(")", " "). \
+            replace("    ", " "). \
+            replace("   ", " "). \
+            replace("  ", " ")
+        f = unidecode(f)  # unidecode for normalizing letters
+        f = f.upper()  # to upper letters
+        f = f.split(' ', 1)
+        country_name = f[0]  # country name
+        f = f[1]  # everything else is language
+        unique = {}
+        # get all n-consecutive strings, and count the number of repetitions
+        # default n = 3
+        for j in range(n, len(f)):
+            n_consecutive = f[j - n:j]
+
+            # ------------- COUNTING IN HOW MANY LANGUAGES THE TRIPLET APPEARS ------------- #
+            # if n-consecutive exists doesnt exists in all_triplets we add it to all_triplets
+            if n_consecutive not in all_triplets:
+                # else we put new key in dict with value 1
+                all_triplets.update({n_consecutive: 1})
+            else:
+                # if n_consecutive is not in unique, that means it haven't appeared in current language
+                if n_consecutive not in unique:
+                    # so we increase number of languages it has appeared in
+                    all_triplets[n_consecutive] += 1
+
+            # ------------- COUNTING HOW MANY TIMES A TRIPLET APPEARS IN CURRENT LANGUAGE ------------- #
+            # if n-consecutive exists, we increase their value
+            if n_consecutive in unique:
+                unique[n_consecutive] += 1
+            else:
+                # else we put new key in dict with value 1
+                unique.update({n_consecutive: 1})
+
+        # we put the count of unique n-consecutive strings in text dict
+        texts.update({country_name: unique})
+
+    print(all_triplets)
+    print(texts)
+
+    sorted_all_triplets = sorted(all_triplets.items(), key=lambda kv: kv[1], reverse=True)
+    sorted_all_triplets = dict(sorted_all_triplets)
+    print(sorted_all_triplets)
+
+    # --------- CREATING MATRIX X REPRESENTING NUMBER OF APPEARANCE CERTAIN TRIPLE -------- #
+    k = 5
+    languages = []
+    all_num_of_appearances = []     # matrix of triples
+    for i in texts.keys():
+        languages.append(i)
+
+        # getting all triples of current language
+        current_triplets = texts.get(i)
+
+        num_of_appearances = np.zeros(k)     # counting number of appearances of certain triple in current language
+
+        count = 0
+        # count how many times triple appears in current language
+        for j in sorted_all_triplets.keys():
+            if count == k:
+                break
+            # creating list of number of appearances
+            if j in current_triplets.keys():
+                num_of_appearances[count] = current_triplets.get(j)
+            count += 1
+
+        # adding to matrix
+        all_num_of_appearances.append(num_of_appearances)
+
+    X = np.array(all_num_of_appearances)
+
+    print(X)
+
+    return X, languages
 
 
 def power_iteration(X):
@@ -157,32 +244,21 @@ def explained_variance_ratio(X, eigenvectors, eigenvalues):
 if __name__ == "__main__":
 
     # prepare the data matrix
-    # X, languages = prepare_data_matrix()
+
+    entries = os.listdir('test/')
+    DATA_FILES = []
+    for entry in entries:
+        if entry[0] != '.':
+            path = "test/" + entry
+            DATA_FILES.append(path)
+
+    X, languages = prepare_data_matrix(DATA_FILES)
+
+    print(X)
+    print(languages)
 
     # PCA
     # ...
 
     # plotting
     # ...
-
-    # my testing
-    DATA = np.array([[22.0, 81.0, 32.0, 39.0, 21.0, 37.0, 46.0, 36.0, 99.0],
-                     [91.0, 95.0, 65.0, 96.0, 89.0, 39.0, 11.0, 22.0, 29.0],
-                     [51.0, 89.0, 21.0, 39.0, 100.0, 59.0, 100.0, 89.0, 27.0],
-                     [9.0, 80.0, 18.0, 34.0, 61.0, 100.0, 90.0, 92.0, 8.0],
-                     [93.0, 99.0, 39.0, 100.0, 12.0, 47.0, 17.0, 12.0, 63.0],
-                     [49.0, 83.0, 17.0, 33.0, 92.0, 30.0, 98.0, 91.0, 73.0],
-                     [91.0, 99.0, 97.0, 89.0, 49.0, 96.0, 81.0, 94.0, 69.0],
-                     [12.0, 69.0, 32.0, 14.0, 34.0, 12.0, 33.0, 48.0, 96.0],
-                     [91.0, 80.0, 20.0, 10.0, 82.0, 93.0, 87.0, 91.0, 22.0],
-                     [39.0, 100.0, 19.0, 29.0, 99.0, 31.0, 77.0, 79.0, 23.0],
-                     [20.0, 91.0, 10.0, 15.0, 71.0, 99.0, 78.0, 93.0, 12.0],
-                     [90.0, 60.0, 45.0, 34.0, 45.0, 20.0, 15.0, 5.0, 100.0],
-                     [100.0, 98.0, 97.0, 89.0, 32.0, 72.0, 22.0, 13.0, 37.0],
-                     [14.0, 4.0, 15.0, 27.0, 61.0, 42.0, 51.0, 52.0, 39.0],
-                     [9.0, 22.0, 8.0, 7.0, 100.0, 11.0, 92.0, 96.0, 29.0],
-                     [85.0, 90.0, 100.0, 99.0, 45.0, 38.0, 92.0, 67.0, 21.0]])
-
-    evects, evals = power_iteration_two_components(DATA)
-    print(evects)
-    project_to_eigenvectors(DATA, evects)
