@@ -2,6 +2,7 @@ import os
 
 from unidecode import unidecode
 import numpy as np
+import matplotlib.pyplot as plt
 
 # useful:
 # https://towardsdatascience.com/pca-eigenvectors-and-eigenvalues-1f968bc6777a
@@ -67,15 +68,12 @@ def prepare_data_matrix(files, n=3):
         # we put the count of unique n-consecutive strings in text dict
         texts.update({country_name: unique})
 
-    print(all_triplets)
-    print(texts)
-
+    # sorting
     sorted_all_triplets = sorted(all_triplets.items(), key=lambda kv: kv[1], reverse=True)
     sorted_all_triplets = dict(sorted_all_triplets)
-    print(sorted_all_triplets)
 
     # --------- CREATING MATRIX X REPRESENTING NUMBER OF APPEARANCE CERTAIN TRIPLE -------- #
-    k = 5
+    k = 100
     languages = []
     all_num_of_appearances = []     # matrix of triples
     for i in texts.keys():
@@ -100,8 +98,6 @@ def prepare_data_matrix(files, n=3):
         all_num_of_appearances.append(num_of_appearances)
 
     X = np.array(all_num_of_appearances)
-
-    print(X)
 
     return X, languages
 
@@ -191,9 +187,6 @@ def project_to_eigenvectors(X, vecs):
     are vectors.
     """
 
-    print(X)
-    print(vecs)
-
     # centering data
     X_cen = X - np.mean(X, axis=0)
 
@@ -212,8 +205,6 @@ def project_to_eigenvectors(X, vecs):
         column2.append(pc2)
 
     pca_matrix = np.array(list(zip(column1, column2)))
-
-    print(pca_matrix)
 
     return pca_matrix
 
@@ -244,21 +235,32 @@ def explained_variance_ratio(X, eigenvectors, eigenvalues):
 if __name__ == "__main__":
 
     # prepare the data matrix
-
-    entries = os.listdir('test/')
+    entries = os.listdir('languages/')
     DATA_FILES = []
     for entry in entries:
         if entry[0] != '.':
-            path = "test/" + entry
+            path = "languages/" + entry
             DATA_FILES.append(path)
 
     X, languages = prepare_data_matrix(DATA_FILES)
 
-    print(X)
-    print(languages)
-
     # PCA
-    # ...
+    evecs, evals = power_iteration_two_components(X)
+    matrix = project_to_eigenvectors(X, evecs)
+    ratio = explained_variance_ratio(X, evecs, evals)
 
     # plotting
-    # ...
+    x = matrix[:, 0]
+    y = matrix[:, 1]
+
+    fig, ax = plt.subplots()
+    ax.scatter(x, y)
+
+    for i, txt in enumerate(languages):
+        ax.annotate(txt, (x[i], y[i]))
+
+    title = "Explained variance: " + str(round(ratio, 2))
+
+    plt.title(title)
+
+    plt.show()
