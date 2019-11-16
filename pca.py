@@ -77,16 +77,18 @@ def power_iteration_two_components(X):
     # first eigenvector and eigenvalue
     vector1, value1 = power_iteration(X)
 
+    new_X = []
+
     count = 0
     for i in X:
         # projection of each data point to eigenvector
         projection = vector1 * np.dot(i, vector1) / np.dot(vector1, vector1)
         # substract the projection from original data
-        X[count, :] = X[count, :] - projection
+        new_X.append(X[count, :] - projection)
         count += 1
 
     # calcutlating second eigen value and vector with power method
-    vector2, value2 = power_iteration(X)
+    vector2, value2 = power_iteration(new_X)
 
     # combining both into matix
     eigen_vectors = np.stack((vector1, vector2))
@@ -101,7 +103,32 @@ def project_to_eigenvectors(X, vecs):
     The output array should have as many rows as X and as many columns as there
     are vectors.
     """
-    pass
+
+    print(X)
+    print(vecs)
+
+    # centering data
+    X_cen = X - np.mean(X, axis=0)
+
+    vector1 = vecs[0]
+    vector2 = vecs[1]
+
+    column1 = []
+    column2 = []
+
+    for i in X_cen:
+        # projection of each data point to both eigenvectors
+        pc1 = np.dot(vector1, i)
+        pc2 = np.dot(vector2, i)
+
+        column1.append(pc1)
+        column2.append(pc2)
+
+    pca_matrix = np.array(list(zip(column1, column2)))
+
+    print(pca_matrix)
+
+    return pca_matrix
 
 
 def total_variance(X):
@@ -116,7 +143,15 @@ def explained_variance_ratio(X, eigenvectors, eigenvalues):
     """
     Compute explained variance ratio.
     """
-    pass
+
+    # total variance of matrix X
+    tot = total_variance(X)
+
+    # ratio is the sum of eigenvalues (which are variances or. magnitudes of principal components (eigenvectors)),
+    # divided by total variance of DATA
+    ratio = sum(eigenvalues) / tot
+
+    return ratio
 
 
 if __name__ == "__main__":
@@ -148,4 +183,6 @@ if __name__ == "__main__":
                      [9.0, 22.0, 8.0, 7.0, 100.0, 11.0, 92.0, 96.0, 29.0],
                      [85.0, 90.0, 100.0, 99.0, 45.0, 38.0, 92.0, 67.0, 21.0]])
 
-    power_iteration_two_components(DATA)
+    evects, evals = power_iteration_two_components(DATA)
+    print(evects)
+    project_to_eigenvectors(DATA, evects)
