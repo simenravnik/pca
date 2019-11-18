@@ -4,10 +4,6 @@ from unidecode import unidecode
 import numpy as np
 import matplotlib.pyplot as plt
 
-# useful:
-# https://towardsdatascience.com/pca-eigenvectors-and-eigenvalues-1f968bc6777a
-
-
 def prepare_data_matrix(files, n=3):
     """
     Return data in a matrix (2D numpy array), where each row contains triplets
@@ -160,19 +156,9 @@ def power_iteration_two_components(X):
     # first eigenvector and eigenvalue
     vector1, value1 = power_iteration(X)
 
-    size = (np.size(X, 0), np.size(X, 1))
-
-    # X rows size matrix of vector1 (for calculating dot product of each row in X)
-    vector1_matrix = np.zeros(size) + vector1
-
-    # row-wise dot product
-    dot_vector = np.einsum('ij, ij->i', X, vector1_matrix)
-
-    # projection matrix is matrix of projections
-    projection_matrix = (vector1_matrix.T * dot_vector).T
-
-    # new X which is substraction of X with projection_matrix
-    new_X = X - projection_matrix
+    # new X which is substraction of X with projections to eigenvectors
+    vec = np.array(vector1).reshape(-1, 1)
+    new_X = X - X.dot(vec.dot(vec.T))
 
     # calculating second eigenvalue and vector with power method
     vector2, value2 = power_iteration(new_X)
