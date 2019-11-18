@@ -160,20 +160,24 @@ def power_iteration_two_components(X):
     # first eigenvector and eigenvalue
     vector1, value1 = power_iteration(X)
 
-    new_X = []
+    size = (np.size(X, 0), np.size(X, 1))
 
-    count = 0
-    for i in X:
-        # projection of each data point to eigenvector
-        projection = vector1 * np.dot(i, vector1) / np.dot(vector1, vector1)
-        # substract the projection from original data
-        new_X.append(X[count, :] - projection)
-        count += 1
+    # X rows size matrix of vector1 (for calculating dot product of each row in X)
+    vector1_matrix = np.zeros(size) + vector1
 
-    # calcutlating second eigen value and vector with power method
+    # vector of dot products of X and vector1_matrix
+    dot_vector = np.einsum('ij,ij->i', X, vector1_matrix)
+
+    # projection matrix is matrix of projections
+    projection_matrix = (vector1_matrix.T * dot_vector).T
+
+    # new X which is substraction of X with projection_matrix
+    new_X = X - projection_matrix
+
+    # calculating second eigenvalue and vector with power method
     vector2, value2 = power_iteration(new_X)
 
-    # combining both into matix
+    # combining both into matrix
     eigen_vectors = np.stack((vector1, vector2))
     eigen_values = np.concatenate((value1, value2), axis=None)
 
