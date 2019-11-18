@@ -194,21 +194,8 @@ def project_to_eigenvectors(X, vecs):
     # centering data
     X_cen = X - np.mean(X, axis=0)
 
-    vector1 = vecs[0]
-    vector2 = vecs[1]
-
-    column1 = []
-    column2 = []
-
-    for i in X_cen:
-        # projection of each data point to both eigenvectors
-        pc1 = np.dot(vector1, i)
-        pc2 = np.dot(vector2, i)
-
-        column1.append(pc1)
-        column2.append(pc2)
-
-    pca_matrix = np.array(list(zip(column1, column2)))
+    # pca matrix with pc1 and pc2
+    pca_matrix = np.dot(X_cen, vecs.T)
 
     return pca_matrix
 
