@@ -165,8 +165,8 @@ def power_iteration_two_components(X):
     # X rows size matrix of vector1 (for calculating dot product of each row in X)
     vector1_matrix = np.zeros(size) + vector1
 
-    # vector of dot products of X and vector1_matrix
-    dot_vector = np.einsum('ij,ij->i', X, vector1_matrix)
+    # row-wise dot product
+    dot_vector = np.einsum('ij, ij->i', X, vector1_matrix)
 
     # projection matrix is matrix of projections
     projection_matrix = (vector1_matrix.T * dot_vector).T
