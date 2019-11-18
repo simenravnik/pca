@@ -216,8 +216,7 @@ def explained_variance_ratio(X, eigenvectors, eigenvalues):
     # total variance of matrix X
     tot = total_variance(X)
 
-    # ratio is the sum of eigenvalues (which are variances or. magnitudes of principal components (eigenvectors)),
-    # divided by total variance of DATA
+    # ratio is the sum of eigenvalues divided by total variance of DATA
     ratio = sum(eigenvalues) / tot
 
     return ratio
