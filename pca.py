@@ -1,3 +1,4 @@
+import math
 import os
 
 from unidecode import unidecode
@@ -65,8 +66,12 @@ def prepare_data_matrix(files, n=3):
         texts.update({country_name: unique})
 
     # sorting
-    sorted_all_triplets = sorted(all_triplets.items(), key=lambda kv: kv[1], reverse=True)
-    sorted_all_triplets = dict(sorted_all_triplets)
+    idf_dict = sorted(all_triplets.items(), key=lambda kv: kv[1], reverse=True)
+    idf_dict = dict(idf_dict)
+
+    # idf measure
+    for key, val in idf_dict.items():
+        idf_dict[key] = math.log(len(files) / float(val))
 
     # --------- CREATING MATRIX X REPRESENTING NUMBER OF APPEARANCE CERTAIN TRIPLE -------- #
     k = 100
@@ -82,7 +87,7 @@ def prepare_data_matrix(files, n=3):
 
         count = 0
         # count how many times triple appears in current language
-        for j in sorted_all_triplets.keys():
+        for j in idf_dict.keys():
             if count == k:
                 break
             # creating list of number of appearances
